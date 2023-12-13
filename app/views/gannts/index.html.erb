@@ -17,7 +17,7 @@
                 </div>
               </div>
         </div>
-        <div id="gantt-calendar" class="overflow-x-scroll" :style="`width:${calendarViewWidth}px`">
+        <div id="gantt-calendar" class="overflow-x-scroll" :style="`width:${calendarViewWidth}px`" ref="calendar">
           <div id="gantt-date" class="h-20">
             <div id="gantt-year-month" class="relative h-8">
               <div v-for="(calendar,index) in calendars" :key="index">
@@ -31,7 +31,7 @@
           <div id="gantt-day" class="relative h-12">
             <div v-for="(calendar,index) in calendars" :key="index">
               <div v-for="(day,index) in calendar.days" :key="index">
-                <div class="border-r h-12 absolute flex items-center justify-center flex-col font-bold text-xs"
+                <div class="border-r h-12 absolute flex items-center justify-center flex-col font-bold text-xs" :class="{'bg-blue-100': day.dayOfWeek === '土', 'bg-red-100': day.dayOfWeek ==='日','bg-red-600 text-white': calendar.year=== today.year() && calendar.month === today.month() && day.day === today.date()}"
                   :style="`width:${block_size}px;left:${day.block_number*block_size}px`">
                   <span>{{ day.day }}</span>
                   <span>{{ day.dayOfWeek }}</span>
@@ -39,6 +39,18 @@
               </div>
             </div>
           </div>
+          <div id="gantt-height" class="relative"> 
+            <div v-for="(calendar,index) in calendars" :key="index">
+              <div v-for="(day,index) in calendar.days" :key="index">
+                <div class="border-r border-b absolute"
+                  :style="`width:${block_size}px;left:${day.block_number*block_size}px;height:${calendarViewHeight}px`">
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div id="gantt-bar-area" class="relative" :style="`width:${calendarViewWidth}px;height:${calendarViewHeight}px`">
+        </div>
         </div>
     </div>
 </div>
@@ -50,8 +62,8 @@
   const app = Vue.createApp({
     data(){
       return {
-        start_month: '2020-10',
-        end_month: '2021-02',
+        start_month: '2023-5',
+        end_month: '2024-3',
         block_size: 30,
         block_number: 0,
         calendars:[],
@@ -59,11 +71,23 @@
         inner_height: '', 
         task_width: '',
         task_height: '',
+        today:moment(),
       };
     },
     computed: {
       calendarViewWidth() {
         return this.inner_width - this.task_width;
+      },
+      calendarViewHeight() {
+        return this.inner_height - this.task_height - 48 - 20;
+      },
+      scrollDistance() {
+        let start_date = moment(this.start_month);
+        let between_days = this.today.diff(start_date, 'days')
+        return (between_days + 1) * this.block_size - this.calendarViewWidth / 2;
+      },
+      todayPosition() {
+        this.$refs.calendar.scrollLeft = this.scrollDistance
       },
     },
     methods:{
@@ -115,7 +139,9 @@
     mounted() {
       this.getCalendar();
       this.getWindowSize();
-      window.addEventListener('resize', this.getWindowSize);
+      this.$nextTick(() => {
+      this.todayPosition();
+      })
     }
   }).mount('#app');
 </script>
