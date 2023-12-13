@@ -76,12 +76,9 @@
           </div>
         </div>
         <div id="gantt-bar-area" class="relative" :style="`width:${calendarViewWidth}px;height:${calendarViewHeight}px`">
-              <div v-for="(bar,index) in taskBars" :key="index">
-                <div
-                  :style="bar.style"
-                  class="rounded-lg absolute h-5 bg-yellow-100"
-                  v-if="bar.task.cat === 'task'">
-                  <div class="w-full h-full"></div>
+          <div v-for="(bar,index) in taskBars" :key="index">
+            <div :style="bar.style" class="rounded-lg absolute h-5 bg-yellow-100" v-if="bar.task.cat === 'task'" @mousedown="mouseDownMove(bar.task)" >
+              <div class="w-full h-full" style="pointer-events: none;"></div>
                 </div>
               </div>
               </div>
@@ -109,6 +106,11 @@
         task_width: '',
         task_height: '',
         position_id:0,
+        dragging:false,
+        pageX:'',
+        elememt:'',
+        left:'',
+        task_id:'',
         today:moment(),
         categories: [
         {
@@ -293,12 +295,40 @@
         }
         return block_number;
       },   
+      mouseMove() {
+        if (this.dragging) {
+          let diff = this.pageX - event.pageX;
+          this.element.style.left = `${parseInt(this.left.replace('px', '')) - diff}px`; //top設定により、上下移動も可能？
+        }
+      },
+      stopDrag(){
+        if (this.dragging) {
+          let diff = this.pageX - event.pageX
+          let days = Math.ceil(diff / this.block_size)
+          if (days !== 0) {
+            console.log(days)
+            let task = this.tasks.find(task => task.id === this.task_id);
+            let start_date = moment(task.start_date).add(-days, 'days')
+            let end_date = moment(task.end_date).add(-days, 'days')
+            task['start_date'] = start_date.format('YYYY-MM-DD')
+            task['end_date'] = end_date.format('YYYY-MM-DD')
+          } else {
+            this.element.style.left = `${this.left.replace('px', '')}px`;
+          }
+        }
+        this.dragging = false;
+      },
     },
     mounted() {
       this.getCalendar();
       this.getWindowSize();
       window.addEventListener('resize', this.getWindowSize);
       window.addEventListener('wheel', this.windowSizeCheck);
+      window.addEventListener('mousemove', this.mouseMove);
+      window.addEventListener('mouseup', this.stopDrag);
+      window.addEventListener('mouseup', function(){
+        console.log('mouseup');
+      });
       this.$nextTick(() => {
       this.todayPosition();
       });
