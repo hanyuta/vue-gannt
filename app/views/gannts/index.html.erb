@@ -78,7 +78,9 @@
         <div id="gantt-bar-area" class="relative" :style="`width:${calendarViewWidth}px;height:${calendarViewHeight}px`">
           <div v-for="(bar,index) in taskBars" :key="index">
             <div :style="bar.style" class="rounded-lg absolute h-5 bg-yellow-100" v-if="bar.task.cat === 'task'" @mousedown="mouseDownMove(bar.task)" >
-                  <div class="w-full h-full" style="pointer-events: none;"></div>
+                  <div class="w-full h-full" style="pointer-events: none;">
+                    <div class="h-full bg-yellow-500 rounded-l-lg" style="pointer-events: none;" :style="`width:${bar.task.percentage}%`":class="{'rounded-r-lg': bar.task.percentage === 100}"></div>
+                  </div>
                   <div class="absolute w-2 h-2 bg-gray-300 border border-black" style="top:6px;left:-6px;cursor:col-resize" @mousedown.stop="mouseDownResize(bar.task,'left')">
             </div>
             <div class="absolute w-2 h-2 bg-gray-300 border border-black" style="top:6px;right:-6px;cursor:col-resize" @mousedown.stop="mouseDownResize(bar.task,'right')">
