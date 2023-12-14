@@ -16,7 +16,8 @@
           <div class="overlay" v-show="show" @click="show=false">
           </div>
           <div class="content" v-show="show">
-            <h2 class="font-bold">タスクの追加</h2>
+            <h2 class="font-bold" v-if="update_mode">タスクの更新</h2>
+            <h2 class="font-bold" v-else>タスクの追加</h2>
             <div class="my-4">
               <label class="text-xs">カテゴリーID:</label>
               <select v-model="form.category_id" class="text-xs border px-4 py-2 rounded-lg">
@@ -48,7 +49,17 @@
               <label class="text-xs">進捗度:</label>
               <input class="text-xs border rounded-lg px-4 py-2" v-model="form.percentage" type="number">
             </div>
-            <div>
+            <div v-if="update_mode" class="flex items-center justify-between">
+              <button
+                class="bg-green-500 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg text-xs flex items-center">
+                <svg class="w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                    d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                </svg>
+                <span class="text-xs font-bold text-white">タスクを更新</span>
+              </button>
+            </div>
+            <div v-else>
               <button @click="saveTask" class="bg-indigo-500 hover:bg-indigo-700 text-white font-bold py-2 px-4 rounded-lg flex items-center">
                 <svg class="w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6" />
@@ -223,6 +234,7 @@
         rightResizing:false,
         task:'',
         show:false,
+        update_mode:false,
         today:moment(),
         form: {
           category_id: '',
@@ -381,20 +393,20 @@
         this.task_height = this.$refs.task.offsetHeight;
       },
       getDays(year, month, block_number) {
-      const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'];
-      let days = [];
-      let date = moment(`${year}-${month}-01`);
-      let num = date.daysInMonth();
-      for (let i = 0; i < num; i++) {
-        days.push({
-          day: date.date(),
-          dayOfWeek: dayOfWeek[date.day()],
-          block_number,
-        });
-        date.add(1, 'day');
-        block_number++;
-      }
-      return days;
+        const dayOfWeek = ['日', '月', '火', '水', '木', '金', '土'];
+        let days = [];
+        let date = moment(`${year}-${month}-01`);
+        let num = date.daysInMonth();
+        for (let i = 0; i < num; i++) {
+          days.push({
+            day: date.date(),
+            dayOfWeek: dayOfWeek[date.day()],
+            block_number,
+          });
+          date.add(1, 'day');
+          block_number++;
+        }
+        return days;
       },  
       getCalendar() {
         let block_number = 0;
@@ -536,6 +548,8 @@
         category['collapsed'] = !category['collapsed'];
       },
       addTask(){
+        this.update_mode = false;
+        this.form = {}
         this.show = true;
       },
       saveTask() {
@@ -545,10 +559,11 @@
         this.form = {}
         this.show = false
       },
-    editTask(task){
+      editTask(task){
+        this.update_mode=true;
         this.show = true;
         Object.assign(this.form, task);
-    }
+      }
     },
     mounted() {
       this.getCalendar();
