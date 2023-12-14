@@ -19,8 +19,23 @@
             <div id="gantt-task-list" class="overflow-y-hidden" :style="`height:${calendarViewHeight}px`">
               <div v-for="(task,index) in displayTasks" :key="index" class="flex h-10 border-b" @dragstart="dragTask(task)" @dragover.prevent="dragTaskOver(task)" draggable="true">
                 <template v-if="task.cat === 'category'">
-                  <div class="flex items-center font-bold w-full text-sm pl-2">
-                    {{task.name}}
+                  <div
+                    class="flex items-center font-bold w-full text-sm pl-2 flex justify-between items-center bg-teal-100">
+                    <span>{{task.name}}</span>
+                    <div class="pr-4" @click="toggleCategory(task.id)">
+                      <span v-if="task.collapsed">
+                        <svg class="w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                          stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                        </svg>
+                      </span>
+                      <span v-else>
+                        <svg class="w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"
+                          stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                        </svg>
+                      </span>
+                    </div>
                   </div>
                 </template>
                 <template v-else>
@@ -250,7 +265,7 @@
         this.categories.map(category => {
           lists.push({ cat: 'category', ...category });
           this.tasks.map(task => {
-            if (task.category_id === category.id) {
+            if (task.category_id === category.id &&!category.collapsed) {
               lists.push({ cat: 'task', ...task })
             }
           })
@@ -312,8 +327,6 @@
         this.element = event.target;
         this.left = event.target.style.left;
         this.task_id = task.id
-        console.log(event.pageX)
-        console.log(event.target)
       },
       mouseMove(){
         if(this.dragging){
@@ -326,7 +339,6 @@
           let diff = this.pageX - event.pageX
           let days = Math.ceil(diff / this.block_size)
           if (days !== 0) {
-            console.log(days)
             let task = this.tasks.find(task => task.id === this.task_id);
             let start_date = moment(task.start_date).add(-days, 'days')
             let end_date = moment(task.end_date).add(-days, 'days')
@@ -421,6 +433,10 @@
             }
           }
         }
+      },
+      toggleCategory(task_id) {
+        let category = this.categories.find(category => category.id === task_id)
+        category['collapsed'] = !category['collapsed'];
       },
     },
     mounted() {
